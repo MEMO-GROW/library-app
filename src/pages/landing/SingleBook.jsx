@@ -1,14 +1,11 @@
-import Footer from "../../components/Footer";
-import Navbar from "../../components/Navbar";
+
+import PagesLayout from "../../layouts/PagesLayout";
 
 const SingleBook = () => {
     return(
-        <pagesLayout>
-            <Navbar/>
-            <Footer/>
-        </pagesLayout>
-
+        <PagesLayout>         
+        </PagesLayout>
     ) 
-};
+}
 
 export default SingleBook;

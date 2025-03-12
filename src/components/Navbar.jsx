@@ -1,8 +1,24 @@
 import React from "react";
-import { } from "@react-icons/all-files/fa/FaBeer";
+import logo from "../assets/images/logo.png"
+// import "@react-icons/all-files/fa/FaBeer";
+import { Link } from "react-router";
 
 const Navbar = () => {
-    return <div>Navbar</div>;
+    return (
+        // <div>landing</div>
+        <nav className="flex flex-row justify-around items-center">
+            <div>
+                <img className="h-[41px]" src={logo} alt="logo" />
+            </div>
+            <div className="w-[30%] flex flex-row justify-between">
+                <Link to={'/'}>Home</Link>
+                <Link to={'/books'}>Books</Link>
+                <Link to={'/single-book'}>View</Link>
+                <Link to={'/add-book'}>AddBook</Link>
+            </div>
+        </nav>
+    )
 };
 
 export default Navbar;
+
