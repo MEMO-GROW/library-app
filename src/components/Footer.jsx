@@ -11,7 +11,7 @@ const Footer = () => {
         <div>
           <h2 className="text-2xl font-semibold">BookWormHub</h2>
           <p className="mt-2 text-sm leading-relaxed">
-            A platform for readers to discover, organize, and enjoy books, while enabling authors to publish, showcase, and track their works.
+            A platform for readers to discover, organize, and enjoy books
           </p>
         </div>
 
