@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import PagesLayout from "../../layouts/PagesLayout";
 
@@ -200,5 +201,6 @@ const SingleBook = () => {
     </PagesLayout>
   );
 };
+
 
 export default SingleBook;
