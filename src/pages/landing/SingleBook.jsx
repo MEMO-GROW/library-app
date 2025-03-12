@@ -1,11 +1,11 @@
+
 import PagesLayout from "../../layouts/PagesLayout";
 
 const SingleBook = () => {
-    return (
-        <PagesLayout>
-        <div>Single-Book</div>
-    </PagesLayout>
-    );
-};
+    return(
+        <PagesLayout>         
+        </PagesLayout>
+    ) 
+}
 
 export default SingleBook;
