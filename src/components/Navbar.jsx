@@ -11,9 +11,8 @@ const Navbar = () => {
                 <img className="h-[41px]" src={logo} alt="logo" />
             </div>
             <div className="w-[30%] flex flex-row justify-between">
-                <Link to={'/'}>Home</Link>
+                <Link to={'/home'}>Home</Link>
                 <Link to={'/books'}>Books</Link>
-                <Link to={'/single-book'}>View</Link>
                 <Link to={'/add-book'}>AddBook</Link>
             </div>
         </nav>
