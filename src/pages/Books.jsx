@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import PagesLayout from "../../layouts/PagesLayout";
+import PagesLayout from "../layouts/PagesLayout";
 import axios from "axios";
 import { Link } from "react-router";
 

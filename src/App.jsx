@@ -1,11 +1,11 @@
 import { BrowserRouter, Route, Routes } from 'react-router';
 import './App.css'
-import Hero from './pages/landing/Hero';
-import Login from './pages/landing/Login';
-import Home from './pages/landing/Home';
-import Books from './pages/landing/Books';
-import SingleBook from './pages/landing/SingleBook';
-import AddBook from './pages/landing/AddBook';
+import Hero from './pages/Hero';
+import Login from './pages/Login';
+import Home from './pages/Home';
+import Books from './pages/Books';
+import SingleBook from './pages/SingleBook';
+import AddBook from './pages/AddBook';
 
 function App() {
   return (

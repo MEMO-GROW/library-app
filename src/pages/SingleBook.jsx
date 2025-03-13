@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import PagesLayout from "../../layouts/PagesLayout";
+import PagesLayout from "../layouts/PagesLayout";
 
 const SingleBook = () => {
   // This is placeholder data that will be replaced with API calls
