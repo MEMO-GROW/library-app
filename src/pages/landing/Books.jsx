@@ -1,19 +1,11 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import PagesLayout from "../../layouts/PagesLayout";
+import axios from "axios";
+import { Link } from "react-router";
 
 const Books = () => {
   // This will be populated from the backend later
-  const [books, setBooks] = useState([
-    // These are placeholder entries that will be replaced with real data
-    { id: 1, title: "To Kill a Mockingbird", author: "Harper Lee", coverImage: "/placeholder-cover.jpg", category: "Fiction" },
-    { id: 2, title: "1984", author: "George Orwell", coverImage: "/placeholder-cover.jpg", category: "Science Fiction" },
-    { id: 3, title: "The Great Gatsby", author: "F. Scott Fitzgerald", coverImage: "/placeholder-cover.jpg", category: "Fiction" },
-    { id: 4, title: "Atomic Habits", author: "James Clear", coverImage: "/placeholder-cover.jpg", category: "Self-Help" },
-    { id: 5, title: "The Catcher in the Rye", author: "J.D. Salinger", coverImage: "/placeholder-cover.jpg", category: "Fiction" },
-    { id: 6, title: "Pride and Prejudice", author: "Jane Austen", coverImage: "/placeholder-cover.jpg", category: "Classic" },
-    { id: 7, title: "Becoming", author: "Michelle Obama", coverImage: "/placeholder-cover.jpg", category: "Biography" },
-    { id: 8, title: "Sapiens", author: "Yuval Noah Harari", coverImage: "/placeholder-cover.jpg", category: "History" },
-  ]);
+  const [books, setBooks] = useState([]);
   
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("All");
@@ -34,7 +26,7 @@ const Books = () => {
 
   // Handle book deletion (this will be connected to backend later)
   const handleDeleteBook = (id) => {
-    setBooks(books.filter(book => book.id !== id));
+    setBooks(books.filter(book => book._id !== id));
     setShowDeleteModal(false);
     
     // Show success notification
@@ -55,6 +47,16 @@ const Books = () => {
     setBookToDelete(book);
     setShowDeleteModal(true);
   };
+
+  // Define function to fetch books
+  const getBooks = async () => {
+    const response = await axios.get('https://lms-project-zhgm.onrender.com/api/v1/books');
+    setBooks(response.data);
+  }
+
+  useEffect(() => {
+    getBooks();
+  }, []);
 
   return (
     <PagesLayout>
@@ -115,7 +117,7 @@ const Books = () => {
         {filteredBooks.length > 0 ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
             {filteredBooks.map(book => (
-              <div key={book.id} className="border border-gray-200 rounded-lg overflow-hidden shadow-md hover:shadow-lg transition duration-300">
+              <div key={book._id} className="border border-gray-200 rounded-lg overflow-hidden shadow-md hover:shadow-lg transition duration-300">
                 <div className="h-48 bg-gray-200 relative">
                   {/* This will be replaced with actual book covers later */}
                   <div className="absolute inset-0 flex items-center justify-center text-gray-500">
@@ -129,12 +131,12 @@ const Books = () => {
                   <p className="text-xs text-gray-500 mb-3">Category: {book.category}</p>
                   
                   <div className="flex justify-between mt-2">
-                    <a 
-                      href={`/book/${book.id}`} 
+                    <Link 
+                      to={`/single-book?id=${book._id}`} 
                       className="text-blue-600 hover:text-blue-800 text-sm font-medium"
                     >
                       View Details
-                    </a>
+                    </Link>
                     <div className="flex gap-2">
                       <button
                         onClick={() => window.location.href = `/edit-book/${book.id}`}
