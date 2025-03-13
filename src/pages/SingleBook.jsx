@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import PagesLayout from "../layouts/PagesLayout";
+import axios from "axios";
 
 const SingleBook = () => {
   // This is placeholder data that will be replaced with API calls
@@ -93,6 +94,21 @@ const SingleBook = () => {
     
     return stars;
   };
+
+
+  // Define function to fetch single-book
+  const getBooks = async () => {
+    const response = await axios.get('https://lms-project-zhgm.onrender.com/api/v1/book/67d055fd60292b3c94defee0');
+    setBook(response
+      .data);
+  }
+
+  useEffect(() => {
+    getBooks();
+  }, []);
+
+
+
 
   return (
     <PagesLayout>
