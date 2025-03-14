@@ -13,6 +13,18 @@ const Books = () => {
   const [bookToDelete, setBookToDelete] = useState(null);
   const [notification, setNotification] = useState({ show: false, message: "", type: "" });
 
+  // New state for edit functionality
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [bookToEdit, setBookToEdit] = useState(null);
+  const [editFormData, setEditFormData] = useState({
+    title: "",
+    author: "",
+    category: ""
+  });
+
+  // State for featured books carousel
+  const [currentFeaturedIndex, setCurrentFeaturedIndex] = useState(0);
+
   // Categories for the filter dropdown
   const categories = ["All", "Fiction", "Non-Fiction", "Science Fiction", "Biography", "Self-Help", "History", "Classic"];
 
@@ -23,6 +35,48 @@ const Books = () => {
     const matchesCategory = selectedCategory === "All" || book.category === selectedCategory;
     return matchesSearch && matchesCategory;
   });
+
+  // Get featured books (first 3 from current position)
+  const getFeaturedBooks = () => {
+    if (filteredBooks.length === 0) return [];
+    
+    const startIndex = currentFeaturedIndex % filteredBooks.length;
+    const featuredBooks = [];
+    
+    for (let i = 0; i < 3; i++) {
+      const index = (startIndex + i) % filteredBooks.length;
+      featuredBooks.push(filteredBooks[index]);
+    }
+    
+    return featuredBooks;
+  };
+
+  // Get remaining books for grid (excluding featured)
+  const getRemainingBooks = () => {
+    if (filteredBooks.length <= 3) return [];
+    
+    const featuredIndices = new Set();
+    const startIndex = currentFeaturedIndex % filteredBooks.length;
+    
+    for (let i = 0; i < 3; i++) {
+      const index = (startIndex + i) % filteredBooks.length;
+      featuredIndices.add(index);
+    }
+    
+    return filteredBooks.filter((_, index) => !featuredIndices.has(index));
+  };
+
+  // Handle featured carousel navigation
+  const navigateFeatured = (direction) => {
+    if (direction === 'next') {
+      setCurrentFeaturedIndex((prev) => (prev + 3) % filteredBooks.length);
+    } else {
+      setCurrentFeaturedIndex((prev) => {
+        const newIndex = prev - 3;
+        return newIndex < 0 ? Math.max(0, filteredBooks.length - (3 - (prev % 3))) : newIndex;
+      });
+    }
+  };
 
   // Handle book deletion (this will be connected to backend later)
   const handleDeleteBook = (id) => {
@@ -46,6 +100,71 @@ const Books = () => {
   const confirmDelete = (book) => {
     setBookToDelete(book);
     setShowDeleteModal(true);
+  };
+
+  // Open edit modal
+  const confirmEdit = (book) => {
+    setBookToEdit(book);
+    setEditFormData({
+      title: book.title,
+      author: book.author,
+      category: book.category || categories[1] // Default to Fiction if no category
+    });
+    setShowEditModal(true);
+  };
+
+  // Handle form input changes
+  const handleEditFormChange = (e) => {
+    const { name, value } = e.target;
+    setEditFormData({
+      ...editFormData,
+      [name]: value
+    });
+  };
+
+  // Handle edit form submission
+  const handleEditBook = async () => {
+    try {
+      // Update the book in the local state for now
+      // This will be replaced with an API call when connected to backend
+      const updatedBooks = books.map(book => {
+        if (book._id === bookToEdit._id) {
+          return {
+            ...book,
+            title: editFormData.title,
+            author: editFormData.author,
+            category: editFormData.category
+          };
+        }
+        return book;
+      });
+      
+      setBooks(updatedBooks);
+      setShowEditModal(false);
+      
+      // Show success notification
+      setNotification({
+        show: true,
+        message: "Book updated successfully!",
+        type: "success"
+      });
+      
+      // Hide notification after 3 seconds
+      setTimeout(() => {
+        setNotification({ show: false, message: "", type: "" });
+      }, 3000);
+    } catch (error) {
+      // Handle error
+      setNotification({
+        show: true,
+        message: "Error updating book. Please try again.",
+        type: "error"
+      });
+      
+      setTimeout(() => {
+        setNotification({ show: false, message: "", type: "" });
+      }, 3000);
+    }
   };
 
   // Define function to fetch books
@@ -113,53 +232,143 @@ const Books = () => {
           </div>
         )}
 
-        {/* Books Grid */}
         {filteredBooks.length > 0 ? (
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
-            {filteredBooks.map(book => (
-              <div key={book._id} className="border border-gray-200 rounded-lg overflow-hidden shadow-md hover:shadow-lg transition duration-300">
-                <div className="h-48 bg-gray-200 relative">
-                  {/* This will be replaced with actual book covers later */}
-                  <div className="absolute inset-0 flex items-center justify-center text-gray-500">
-                    <span>Cover Image</span>
-                  </div>
-                </div>
-                
-                <div className="p-4">
-                  <h3 className="font-bold text-lg mb-1 truncate">{book.title}</h3>
-                  <p className="text-gray-600 text-sm mb-2">{book.author}</p>
-                  <p className="text-xs text-gray-500 mb-3">Category: {book.category}</p>
-                  
-                  <div className="flex justify-between mt-2">
-                    <Link 
-                      to={`/single-book?id=${book._id}`} 
-                      className="text-blue-600 hover:text-blue-800 text-sm font-medium"
-                    >
-                      View Details
-                    </Link>
-                    <div className="flex gap-2">
-                      <button
-                        onClick={() => window.location.href = `/edit-book/${book.id}`}
-                        className="text-gray-600 hover:text-gray-800"
-                      >
-                        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                        </svg>
-                      </button>
-                      <button
-                        onClick={() => confirmDelete(book)}
-                        className="text-red-600 hover:text-red-800"
-                      >
-                        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                        </svg>
-                      </button>
-                    </div>
-                  </div>
+          <>
+            {/* Featured Books Carousel */}
+            <div className="mb-12">
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-xl font-bold text-gray-800">Featured Books</h2>
+                <div className="flex gap-2">
+                  <button 
+                    onClick={() => navigateFeatured('prev')}
+                    className="p-2 rounded-full bg-gray-200 hover:bg-gray-300 transition"
+                    aria-label="Previous featured books"
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                    </svg>
+                  </button>
+                  <button 
+                    onClick={() => navigateFeatured('next')}
+                    className="p-2 rounded-full bg-gray-200 hover:bg-gray-300 transition"
+                    aria-label="Next featured books"
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                    </svg>
+                  </button>
                 </div>
               </div>
-            ))}
-          </div>
+              
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                {getFeaturedBooks().map(book => (
+                  <div
+                    key={`featured-${book._id}`}
+                    className="border border-gray-200 rounded-lg overflow-hidden shadow-md hover:shadow-lg transition duration-300"
+                  >
+                    <div className="h-64 bg-gray-200 relative">
+                      {/* LINE 268: Cover Image */}
+                      <img
+                        src={book.coverImage || "https://savefiles.org/secure/uploads/34624?shareable_link=637"}
+                        alt="Cover Image"
+                        className="object-cover w-full h-full"
+                      />
+                    </div>
+                    
+                    <div className="p-4">
+                      <h3 className="font-bold text-xl mb-2">{book.title}</h3>
+                      <p className="text-gray-600 text-base mb-2">{book.author}</p>
+                      <p className="text-sm text-gray-500 mb-4">Category: {book.category}</p>
+                      
+                      <div className="flex justify-between mt-2">
+                        <Link 
+                          to={`/single-book?id=${book._id}`} 
+                          className="text-blue-600 hover:text-blue-800 text-sm font-medium"
+                        >
+                          View Details
+                        </Link>
+                        <div className="flex gap-2">
+                          <button
+                            onClick={() => confirmEdit(book)}
+                            className="text-gray-600 hover:text-gray-800"
+                          >
+                            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                            </svg>
+                          </button>
+                          <button
+                            onClick={() => confirmDelete(book)}
+                            className="text-red-600 hover:text-red-800"
+                          >
+                            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                            </svg>
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Regular Books Grid */}
+            {getRemainingBooks().length > 0 && (
+              <div>
+                <h2 className="text-xl font-bold text-gray-800 mb-4">All Books</h2>
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6">
+                  {getRemainingBooks().map(book => (
+                    <div
+                      key={book._id}
+                      className="border border-gray-200 rounded-lg overflow-hidden shadow-md hover:shadow-lg transition duration-300"
+                    >
+                      <div className="h-48 bg-gray-200 relative">
+                        {/* LINE 321: Cover Image */}
+                        <img
+                          src={book.coverImage || "https://savefiles.org/secure/uploads/34624?shareable_link=637"}
+                          alt="Cover Image"
+                          className="object-cover w-full h-full"
+                        />
+                      </div>
+                      
+                      <div className="p-4">
+                        <h3 className="font-bold text-lg mb-1 truncate">{book.title}</h3>
+                        <p className="text-gray-600 text-sm mb-2">{book.author}</p>
+                        <p className="text-xs text-gray-500 mb-3">Category: {book.category}</p>
+                        
+                        <div className="flex justify-between mt-2">
+                          <Link 
+                            to={`/single-book?id=${book._id}`} 
+                            className="text-blue-600 hover:text-blue-800 text-sm font-medium"
+                          >
+                            View Details
+                          </Link>
+                          <div className="flex gap-2">
+                            <button
+                              onClick={() => confirmEdit(book)}
+                              className="text-gray-600 hover:text-gray-800"
+                            >
+                              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                              </svg>
+                            </button>
+                            <button
+                              onClick={() => confirmDelete(book)}
+                              className="text-red-600 hover:text-red-800"
+                            >
+                              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                              </svg>
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </>
         ) : (
           <div className="text-center py-12 bg-gray-50 rounded-lg">
             <svg xmlns="http://www.w3.org/2000/svg" className="h-12 w-12 mx-auto text-gray-400 mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -194,10 +403,70 @@ const Books = () => {
                 Cancel
               </button>
               <button
-                onClick={() => handleDeleteBook(bookToDelete.id)}
+                onClick={() => handleDeleteBook(bookToDelete._id)}
                 className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700"
               >
                 Delete
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Edit Book Modal */}
+      {showEditModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg p-6 max-w-md w-full">
+            <h3 className="text-lg font-bold mb-4">Edit Book</h3>
+            
+            <div className="mb-4">
+              <label className="block text-gray-700 text-sm font-medium mb-2">Title</label>
+              <input
+                type="text"
+                name="title"
+                value={editFormData.title}
+                onChange={handleEditFormChange}
+                className="w-full p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+            </div>
+            
+            <div className="mb-4">
+              <label className="block text-gray-700 text-sm font-medium mb-2">Author</label>
+              <input
+                type="text"
+                name="author"
+                value={editFormData.author}
+                onChange={handleEditFormChange}
+                className="w-full p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+            </div>
+            
+            <div className="mb-6">
+              <label className="block text-gray-700 text-sm font-medium mb-2">Category</label>
+              <select
+                name="category"
+                value={editFormData.category}
+                onChange={handleEditFormChange}
+                className="w-full p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              >
+                {categories.slice(1).map(category => (
+                  <option key={category} value={category}>{category}</option>
+                ))}
+              </select>
+            </div>
+            
+            <div className="flex justify-end gap-4">
+              <button
+                onClick={() => setShowEditModal(false)}
+                className="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-100"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleEditBook}
+                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+              >
+                Save Changes
               </button>
             </div>
           </div>
